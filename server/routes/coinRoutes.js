@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { getCoins, saveHistory, getHistory } = require('../controllers/coinController');
+const { baseRoute, getCoins, saveHistory, getHistory } = require('../controllers/coinController');
+
+// Base route
+router.get('/', baseRoute);
 
 router.get('/coins', getCoins);
 router.post('/history', saveHistory);
