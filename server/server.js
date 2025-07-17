@@ -17,13 +17,8 @@ app.use('/api', coinRoutes);
 // ✅ Welcome Route
 app.get('/', (req, res) => {
   res.send(`
-    <h1>🚀 Crypto Tracker API</h1>
+    <h1>Crypto Tracker</h1>
     <p>This is the backend server for the Crypto Price Tracker project.</p>
-    <ul>
-      <li><a href="/api/coins">/api/coins</a> – Get current top coins</li>
-      <li><a href="/api/history">/api/history</a> – Get historical data</li>
-      <li><a href="/api/history/bitcoin">/api/history/:coinId</a> – Get history for a specific coin</li>
-    </ul>
   `);
 });
 
