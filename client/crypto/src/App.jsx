@@ -5,13 +5,15 @@ import './index.css';
 
 function App() {
   const [coins, setCoins] = useState([]);
+  const [lastUpdated, setLastUpdated] = useState(null);
   const [selected, setSelected] = useState(null);
   const [showChart, setShowChart] = useState(false);
 
   const fetchCoins = async () => {
     try {
-      const { data } = await axios.get('https://crypto-tracker-5z2d.onrender.com/api/coins');
-      setCoins(data);
+      const res = await axios.get('https://crypto-tracker-5z2d.onrender.com/api/coins');
+      setCoins(res.data.data);
+      setLastUpdated(res.data.lastUpdated);
     } catch (err) {
       console.error('Error fetching coins:', err);
     }
@@ -19,7 +21,7 @@ function App() {
 
   useEffect(() => {
     fetchCoins();
-    const interval = setInterval(fetchCoins, 30 * 60 * 1000); // 30 minutes
+    const interval = setInterval(fetchCoins, 30 * 60 * 1000); // every 30 minutes
     return () => clearInterval(interval);
   }, []);
 
@@ -38,9 +40,22 @@ function App() {
       style={{ backgroundImage: "url('https://gregfreeman.me/projects/random/crypto-bg2.jpg')" }}
     >
       <div className="bg-black bg-opacity-60 min-h-screen px-4 py-8">
-        <h1 className="text-white text-3xl font-light text-center uppercase mb-8">
+        <h1 className="text-white text-3xl font-light text-center uppercase mb-4">
           Crypto Price Tracker
         </h1>
+
+        {lastUpdated && (
+          <p className="text-center text-white text-sm mb-6">
+            Last Updated:{" "}
+            {new Date(lastUpdated).toLocaleString('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+          </p>
+        )}
 
         <div className="bg-white bg-opacity-90 backdrop-blur-md rounded-xl p-6 overflow-x-auto">
           <table className="table-auto w-full text-sm">
@@ -51,7 +66,6 @@ function App() {
                 <th className="px-4 py-2">Price</th>
                 <th className="px-4 py-2">Market Cap</th>
                 <th className="px-4 py-2">24h %</th>
-                <th className="px-4 py-2">Last Updated</th>
                 <th className="px-4 py-2">Action</th>
               </tr>
             </thead>
@@ -74,17 +88,6 @@ function App() {
                     }`}
                   >
                     {coin.change24h.toFixed(2)}%
-                  </td>
-                  <td className="px-4 py-2">
-                    {coin.lastUpdated
-                      ? new Date(coin.lastUpdated).toLocaleString('en-GB', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })
-                      : 'N/A'}
                   </td>
                   <td className="px-4 py-2">
                     <button

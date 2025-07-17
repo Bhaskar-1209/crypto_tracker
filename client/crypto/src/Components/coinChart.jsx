@@ -19,9 +19,10 @@ const CoinChart = ({ coinId }) => {
       try {
         const { data } = await axios.get(`https://crypto-tracker-5z2d.onrender.com/api/history/${coinId}`);
 
+        // Format using 'timestamp' instead of 'lastUpdated'
         const formatted = data.map((d) => ({
           price: d.price,
-          date: new Date(d.lastUpdated).getTime(), // use timestamp number for recharts
+          date: new Date(d.timestamp).getTime(),
         }));
 
         setHistory(formatted);
