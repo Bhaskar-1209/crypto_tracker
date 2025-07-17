@@ -1,7 +1,7 @@
 const CurrentData = require('../models/CurrentData');
 const HistoryData = require('../models/HistoryData');
 
-// ✅ Get all current coins + last updated timestamp
+//  Get all current coins + last updated timestamp
 exports.getCurrentCoins = async (req, res) => {
   try {
     const data = await CurrentData.find({});
@@ -16,7 +16,7 @@ exports.getCurrentCoins = async (req, res) => {
   }
 };
 
-// ✅ Get all history data (for all coins)
+//  Get all history data (for all coins)
 exports.getHistoryCoins = async (req, res) => {
   try {
     const data = await HistoryData.find({}).sort({ timestamp: -1 });
@@ -26,7 +26,7 @@ exports.getHistoryCoins = async (req, res) => {
   }
 };
 
-// ✅ Get history for a specific coin (for chart)
+//  Get history for a specific coin (for chart)
 exports.getCoinHistory = async (req, res) => {
   try {
     const { coinId } = req.params;

@@ -7,14 +7,14 @@ const startCronJob = require('./cron/fetchCoins');
 
 const app = express();
 
-// ✅ Middlewares
+//  Middlewares
 app.use(cors());
 app.use(express.json());
 
-// ✅ API Routes
+//  API Routes
 app.use('/api', coinRoutes);
 
-// ✅ Welcome Route
+//  Welcome Route
 app.get('/', (req, res) => {
   res.send(`
     <h1>Crypto Tracker</h1>
@@ -22,13 +22,13 @@ app.get('/', (req, res) => {
   `);
 });
 
-// ✅ Mongo Connection & Cron Start
+//  Mongo Connection & Cron Start
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
-    console.log('✅ MongoDB connected');
+    console.log(' MongoDB connected');
     startCronJob();
     app.listen(process.env.PORT || 7070, () => {
       console.log(`🚀 Server running on port ${process.env.PORT || 7070}`);
     });
   })
-  .catch(err => console.error('❌ MongoDB connection error:', err));
+  .catch(err => console.error('MongoDB connection error:', err));
