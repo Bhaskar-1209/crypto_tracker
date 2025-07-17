@@ -1,6 +1,6 @@
-// ==== server/cron/fetchCoins.js ====
 const cron = require('node-cron');
 const axios = require('axios');
+const CurrentData = require('../models/CurrentData');
 const HistoryData = require('../models/HistoryData');
 
 const fetchAndSave = async () => {
@@ -10,29 +10,38 @@ const fetchAndSave = async () => {
         vs_currency: 'usd',
         order: 'market_cap_desc',
         per_page: 10,
-        page: 1,
-      },
+        page: 1
+      }
     });
 
-    const timestamp = new Date();
-    const records = data.map(coin => ({
+    // Clear current data
+    await CurrentData.deleteMany({});
+
+    const formattedData = data.map(coin => ({
       coinId: coin.id,
       name: coin.name,
       symbol: coin.symbol,
       price: coin.current_price,
       marketCap: coin.market_cap,
       change24h: coin.price_change_percentage_24h,
-      timestamp,
+      timestamp: new Date()
     }));
 
-    await HistoryData.insertMany(records);
-    console.log('📈 Historical data saved');
+    // Save current data
+    await CurrentData.insertMany(formattedData);
+
+    // Save to history
+    await HistoryData.insertMany(formattedData);
+
+    console.log('✅ Synced coin data at', new Date().toLocaleString());
   } catch (err) {
-    console.error('❌ Cron job failed:', err);
+    console.error('❌ Error fetching coin data:', err.message);
   }
 };
 
-module.exports = function startCronJob() {
+const startCronJob = () => {
   cron.schedule('0 * * * *', fetchAndSave); // every hour
+  fetchAndSave(); // run immediately at startup
 };
 
+module.exports = startCronJob;

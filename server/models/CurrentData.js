@@ -1,4 +1,3 @@
-// models/CurrentData.js
 const mongoose = require('mongoose');
 
 const currentDataSchema = new mongoose.Schema({
@@ -8,7 +7,7 @@ const currentDataSchema = new mongoose.Schema({
   price: Number,
   marketCap: Number,
   change24h: Number,
-  lastUpdated: Date,
+  timestamp: { type: Date, default: Date.now }
 });
 
 module.exports = mongoose.model('CurrentData', currentDataSchema);
