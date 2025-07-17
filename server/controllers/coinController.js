@@ -91,19 +91,11 @@ exports.saveHistory = async (req, res) => {
 // ✅ GET /api/history/:coinId
 exports.getHistory = async (req, res) => {
   try {
-    let { coinId } = req.params;
-
-    if (!coinId) {
-      return res.status(400).json({ message: 'Coin ID is required' });
-    }
-
-    // Normalize coinId to lowercase for consistency
-    coinId = coinId.toLowerCase();
-
+    const { coinId } = req.params;
     const history = await HistoryData.find({ coinId }).sort({ lastUpdated: 1 });
 
     if (!history.length) {
-      return res.status(404).json({ message: `No historical data found for "${coinId}"` });
+      return res.status(404).json({ message: 'No historical data found for this coin' });
     }
 
     const formatted = history.map((entry) => ({
@@ -111,13 +103,9 @@ exports.getHistory = async (req, res) => {
       price: entry.price
     }));
 
-    res.status(200).json({
-      coinId,
-      count: formatted.length,
-      history: formatted
-    });
+    res.json(formatted);
   } catch (err) {
-    console.error(`❌ Error fetching history for ${req.params.coinId}:`, err.message || err);
-    res.status(500).json({ message: 'Internal Server Error' });
+    console.error('❌ Failed to get history:', err.message || err);
+    res.status(500).json({ message: 'Server Error' });
   }
 };
