@@ -1,6 +1,7 @@
 const CurrentData = require('../models/CurrentData');
 const HistoryData = require('../models/HistoryData');
 
+// Get latest data (for frontend)
 exports.getCurrentCoins = async (req, res) => {
   try {
     const data = await CurrentData.find({});
@@ -10,6 +11,7 @@ exports.getCurrentCoins = async (req, res) => {
   }
 };
 
+// Get history data (for charts/logs)
 exports.getHistoryCoins = async (req, res) => {
   try {
     const data = await HistoryData.find({}).sort({ timestamp: -1 });

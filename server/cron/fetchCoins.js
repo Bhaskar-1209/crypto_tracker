@@ -14,10 +14,8 @@ const fetchAndSave = async () => {
       }
     });
 
-    // Clear current data
-    await CurrentData.deleteMany({});
-
-    const formattedData = data.map(coin => ({
+    // Format data
+    const formatted = data.map(coin => ({
       coinId: coin.id,
       name: coin.name,
       symbol: coin.symbol,
@@ -27,21 +25,22 @@ const fetchAndSave = async () => {
       timestamp: new Date()
     }));
 
-    // Save current data
-    await CurrentData.insertMany(formattedData);
+    // Overwrite current data
+    await CurrentData.deleteMany({});
+    await CurrentData.insertMany(formatted);
 
-    // Save to history
-    await HistoryData.insertMany(formattedData);
+    // Append to history
+    await HistoryData.insertMany(formatted);
 
-    console.log('✅ Synced coin data at', new Date().toLocaleString());
+    console.log(`✅ Data synced at ${new Date().toLocaleTimeString()}`);
   } catch (err) {
-    console.error('❌ Error fetching coin data:', err.message);
+    console.error('❌ Error syncing data:', err.message);
   }
 };
 
 const startCronJob = () => {
-  cron.schedule('0 * * * *', fetchAndSave); // every hour
-  fetchAndSave(); // run immediately at startup
+  cron.schedule('*/5 * * * *', fetchAndSave); // every 5 minutes
+  fetchAndSave(); // run once immediately on start
 };
 
 module.exports = startCronJob;
