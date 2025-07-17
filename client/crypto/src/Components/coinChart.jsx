@@ -17,7 +17,7 @@ const CoinChart = ({ coinId }) => {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const { data } = await axios.get(`https://crypto-tracker-5z2d.onrender.com/api/history/${coinId}`);
+        const { data } = await axios.get(`http://localhost:7070/api/history/${coinId}`);
 
         const formatted = data.map((d) => ({
           price: d.price,
