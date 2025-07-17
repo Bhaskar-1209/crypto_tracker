@@ -17,7 +17,7 @@ const CoinChart = ({ coinId }) => {
 
   const fetchHistory = async () => {
     try {
-      const res = await axios.get(`https://crypto-tracker-34jz.onrender.com/api/history/${coinId}`);
+      const res = await axios.get(`https://crypto-tracker-5z2d.onrender.com/api/history/${coinId}`);
       setHistory(res.data);
 
       // Optional: set coin name from first data point, if available

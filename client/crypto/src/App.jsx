@@ -9,7 +9,7 @@ function App() {
 
   const fetchCoins = async () => {
     try {
-      const res = await axios.get('http://localhost:7070/api/coins');
+      const res = await axios.get('https://crypto-tracker-5z2d.onrender.com/api/coins');
       setCoins(res.data);
       setLoading(false);
     } catch (err) {
