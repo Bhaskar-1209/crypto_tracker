@@ -1,20 +1,22 @@
+require('dotenv').config();
 const express = require('express');
-const app = express();
+const mongoose = require('mongoose');
+const cors = require('cors');
 const coinRoutes = require('./routes/coinRoutes');
+const startCronJob = require('./cron/fetchCoins');
 
-// Middleware
+const app = express();
+app.use(cors());
 app.use(express.json());
 
-// Use the routes
 app.use('/api', coinRoutes);
 
-// Optional: fallback for unknown routes
-app.use('*', (req, res) => {
-  res.status(404).send('❌ Route not found.');
-});
 
-// Start server
-const PORT = process.env.PORT || 7070;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log('✅ MongoDB connected');
+    startCronJob(); 
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+  })
+  .catch((err) => console.error(err));
