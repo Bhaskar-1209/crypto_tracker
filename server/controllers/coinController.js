@@ -22,13 +22,17 @@ exports.getCoins = async (req, res) => {
           per_page: 10,
           page: 1
         },
-        timeout: 5000 // ⏱ Timeout after 5 seconds
+        timeout: 5000 // Avoid CoinGecko hanging
       }
     );
 
     const data = response.data;
 
-    // Prepare data
+    if (!Array.isArray(data) || data.length === 0) {
+      console.warn('⚠️ CoinGecko returned empty data');
+      return res.status(502).json({ message: 'Failed to fetch data from CoinGecko' });
+    }
+
     const docs = data.map((coin) => ({
       coinId: coin.id,
       name: coin.name,
@@ -39,7 +43,7 @@ exports.getCoins = async (req, res) => {
       lastUpdated: new Date(coin.last_updated)
     }));
 
-    // Use upsert instead of delete + insert
+    // Upsert into CurrentData collection
     const ops = docs.map(doc => ({
       updateOne: {
         filter: { coinId: doc.coinId },
@@ -50,13 +54,13 @@ exports.getCoins = async (req, res) => {
 
     await CurrentData.bulkWrite(ops);
 
-    res.json(docs);
+    res.status(200).json(docs);
   } catch (err) {
-    console.error('❌ Failed to fetch coins:', err.message || err);
+    console.error('❌ Error in getCoins:', err.message || err);
     if (err.response) {
-      console.error('🔍 CoinGecko response:', err.response.data);
+      console.error('🔍 CoinGecko error:', err.response.status, err.response.data);
     }
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ message: 'Server Error. Please try again later.' });
   }
 };
 
@@ -65,7 +69,7 @@ exports.saveHistory = async (req, res) => {
   try {
     const currentData = await CurrentData.find();
     if (!currentData.length) {
-      return res.status(404).json({ message: 'No current data to save' });
+      return res.status(404).json({ message: 'No current data to save.' });
     }
 
     const now = new Date();
@@ -81,10 +85,10 @@ exports.saveHistory = async (req, res) => {
     }));
 
     await HistoryData.insertMany(historyDocs);
-    res.json({ message: 'History saved successfully' });
+    res.status(201).json({ message: '✅ History saved successfully.' });
   } catch (err) {
-    console.error('❌ Failed to save history:', err.message || err);
-    res.status(500).json({ message: 'Server Error' });
+    console.error('❌ Error in saveHistory:', err.message || err);
+    res.status(500).json({ message: 'Failed to save history. Try again later.' });
   }
 };
 
@@ -92,10 +96,15 @@ exports.saveHistory = async (req, res) => {
 exports.getHistory = async (req, res) => {
   try {
     const { coinId } = req.params;
-    const history = await HistoryData.find({ coinId }).sort({ lastUpdated: 1 });
+
+    if (!coinId) {
+      return res.status(400).json({ message: 'Coin ID is required.' });
+    }
+
+    const history = await HistoryData.find({ coinId: coinId.toLowerCase() }).sort({ lastUpdated: 1 });
 
     if (!history.length) {
-      return res.status(404).json({ message: 'No historical data found for this coin' });
+      return res.status(404).json({ message: `No history found for ${coinId}.` });
     }
 
     const formatted = history.map((entry) => ({
@@ -103,9 +112,13 @@ exports.getHistory = async (req, res) => {
       price: entry.price
     }));
 
-    res.json(formatted);
+    res.status(200).json({
+      coinId,
+      count: formatted.length,
+      history: formatted
+    });
   } catch (err) {
-    console.error('❌ Failed to get history:', err.message || err);
-    res.status(500).json({ message: 'Server Error' });
+    console.error(`❌ Error in getHistory(${req.params.coinId}):`, err.message || err);
+    res.status(500).json({ message: 'Failed to fetch history. Please try again later.' });
   }
 };
