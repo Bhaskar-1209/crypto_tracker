@@ -10,7 +10,7 @@ function App() {
 
   const fetchCoins = async () => {
     try {
-      const { data } = await axios.get('http://localhost:7070/api/coins');
+      const { data } = await axios.get('https://crypto-tracker-5z2d.onrender.com/api/coins');
       setCoins(data);
     } catch (err) {
       console.error('Error fetching coins:', err);
