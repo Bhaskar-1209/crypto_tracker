@@ -15,10 +15,7 @@ exports.getCoins = async (req, res) => {
     });
 
     const lastUpdated = new Date();
-
-    // Clear previous CurrentData
     await CurrentData.deleteMany({});
-
     const coins = data.map((coin) => ({
       coinId: coin.id,
       name: coin.name,
@@ -32,7 +29,8 @@ exports.getCoins = async (req, res) => {
     await CurrentData.insertMany(coins);
     res.json(coins);
   } catch (err) {
-    res.status(500).json({ message: 'Failed to fetch coins', error: err });
+    console.error('❌ getCoins error:', err); // ADD THIS LINE
+    res.status(500).json({ message: 'Failed to fetch coins', error: err.message });
   }
 };
 
