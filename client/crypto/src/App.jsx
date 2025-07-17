@@ -1,101 +1,114 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import CoinChart from './Components/coinChart';
+import './index.css';
 
 function App() {
   const [coins, setCoins] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedCoinId, setSelectedCoinId] = useState(null);
+  const [selected, setSelected] = useState(null);
+  const [showChart, setShowChart] = useState(false);
 
   const fetchCoins = async () => {
     try {
-      const res = await axios.get('https://crypto-tracker-5z2d.onrender.com/api/coins');
-      setCoins(res.data);
-      setLoading(false);
+      const { data } = await axios.get('https://crypto-tracker-5z2d.onrender.com/api/coins');
+      setCoins(data);
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching coins:', err);
     }
-  };``
+  };
 
   useEffect(() => {
     fetchCoins();
-    const interval = setInterval(fetchCoins, 1800000);
+    const interval = setInterval(fetchCoins, 30 * 60 * 1000); // 30 minutes
     return () => clearInterval(interval);
   }, []);
 
+  const handleChartToggle = (coinId) => {
+    if (selected === coinId) {
+      setShowChart(!showChart);
+    } else {
+      setSelected(coinId);
+      setShowChart(true);
+    }
+  };
+
   return (
     <div
-      className="min-h-screen bg-cover bg-center bg-fixed font-[Montserrat] text-sm"
-      style={{
-        backgroundImage:
-          "url(https://png.pngtree.com/background/20230622/original/pngtree-fluctuations-in-cryptocurrency-concept-3d-bitcoin-with-red-and-green-arrow-picture-image_3950177.jpg)",
-      }}
+      className="min-h-screen bg-cover bg-center bg-fixed"
+      style={{ backgroundImage: "url('https://gregfreeman.me/projects/random/crypto-bg2.jpg')" }}
     >
-      <h1 className="text-white text-center text-3xl font-light uppercase py-6">
-        Crypto Price Tracker
-      </h1>
+      <div className="bg-black bg-opacity-60 min-h-screen px-4 py-8">
+        <h1 className="text-white text-3xl font-light text-center uppercase mb-8">
+          Crypto Price Tracker
+        </h1>
 
-      <div className="overflow-x-auto px-4">
-        {loading ? (
-          <p className="text-white text-center">Loading...</p>
-        ) : (
-          <table className="w-full max-w-6xl mx-auto backdrop-blur-lg bg-white/10 text-right border-collapse rounded-xl shadow-lg border border-white/20">
+        <div className="bg-white bg-opacity-90 backdrop-blur-md rounded-xl p-6 overflow-x-auto">
+          <table className="table-auto w-full text-sm">
             <thead>
-              <tr className="bg-gray-300">
-                <th className="p-3 text-left">Name</th>
-                <th className="p-3 text-left">Symbol</th>
-                <th className="p-3">Price (USD)</th>
-                <th className="p-3">Market Cap</th>
-                <th className="p-3">24h % Change</th>
-                <th className="p-3">Last Updated</th>
-                <th className="p-3">Chart</th>
+              <tr className="bg-gray-300 text-gray-900">
+                <th className="px-4 py-2 text-left">Name</th>
+                <th className="px-4 py-2">Symbol</th>
+                <th className="px-4 py-2">Price</th>
+                <th className="px-4 py-2">Market Cap</th>
+                <th className="px-4 py-2">24h %</th>
+                <th className="px-4 py-2">Last Updated</th>
+                <th className="px-4 py-2">Action</th>
               </tr>
             </thead>
             <tbody>
               {coins.map((coin) => (
                 <tr
                   key={coin.coinId}
-                  className="border-b border-gray-300 last:border-none"
+                  onClick={() => handleChartToggle(coin.coinId)}
+                  className={`cursor-pointer border-b hover:bg-gray-100 transition ${
+                    selected === coin.coinId ? 'bg-gray-200' : ''
+                  }`}
                 >
-                  <td className="p-3 text-left font-semibold text-white">{coin.name}</td>
-                  <td className="p-3 text-left uppercase text-white">{coin.symbol}</td>
-                  <td className="p-3 text-white">${coin.price.toLocaleString()}</td>
-                  <td className="p-3 text-white">${coin.marketCap.toLocaleString()}</td>
+                  <td className="px-4 py-2 text-left">{coin.name}</td>
+                  <td className="px-4 py-2 uppercase">{coin.symbol}</td>
+                  <td className="px-4 py-2">${coin.price.toFixed(2)}</td>
+                  <td className="px-4 py-2">${coin.marketCap.toLocaleString()}</td>
                   <td
-                    className={`p-3 font-semibold ${
-                      coin.change24h > 0 ? 'text-green-600' : 'text-red-600'
+                    className={`px-4 py-2 font-semibold ${
+                      coin.change24h >= 0 ? 'text-green-600' : 'text-red-600'
                     }`}
                   >
-                    {coin.change24h?.toFixed(2)}%
+                    {coin.change24h.toFixed(2)}%
                   </td>
-                  <td className="p-3 text-white">
-                    {new Date(coin.lastUpdated).toLocaleString()}
+                  <td className="px-4 py-2">
+                    {coin.lastUpdated
+                      ? new Date(coin.lastUpdated).toLocaleString('en-GB', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })
+                      : 'N/A'}
                   </td>
-                  <td className="p-3">
+                  <td className="px-4 py-2">
                     <button
-                      onClick={() => setSelectedCoinId(coin.coinId)}
-                      className="text-cyan-400 underline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleChartToggle(coin.coinId);
+                      }}
+                      className="px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs"
                     >
-                      View Chart
+                      {showChart && selected === coin.coinId ? 'Hide Chart' : 'View Chart'}
                     </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+
+        {showChart && selected && (
+          <div className="mt-10 bg-white bg-opacity-90 backdrop-blur-md rounded-xl p-6">
+            <CoinChart coinId={selected} />
+          </div>
         )}
       </div>
-
-      <p className="text-white text-center py-4">
-        Updated:{" "}
-        {coins[0] ? new Date(coins[0].lastUpdated).toLocaleString() : '...'}
-      </p>
-
-      {selectedCoinId && (
-        <div className="max-w-6xl mx-auto px-4">
-          <CoinChart coinId={selectedCoinId} />
-        </div>
-      )}
     </div>
   );
 }

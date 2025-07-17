@@ -1,61 +1,81 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 import {
   LineChart,
   Line,
   XAxis,
   YAxis,
-  Tooltip,
   CartesianGrid,
-  ResponsiveContainer,
-} from "recharts";
+  Tooltip,
+  ResponsiveContainer
+} from 'recharts';
 
 const CoinChart = ({ coinId }) => {
   const [history, setHistory] = useState([]);
-  const [coinName, setCoinName] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const fetchHistory = async () => {
-    try {
-      const res = await axios.get(`https://crypto-tracker-5z2d.onrender.com/api/history/${coinId}`);
-      setHistory(res.data);
-
-      // Optional: set coin name from first data point, if available
-      if (res.data.length > 0 && res.data[0].name) {
-        setCoinName(res.data[0].name);
-      } else {
-        setCoinName(coinId); // fallback if name is not available
-      }
-
-      setLoading(false);
-    } catch (err) {
-      console.error("Error fetching history:", err);
-    }
-  };
-
   useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const { data } = await axios.get(`https://crypto-tracker-5z2d.onrender.com/api/history/${coinId}`);
+
+        const formatted = data.map((d) => ({
+          price: d.price,
+          date: new Date(d.lastUpdated).getTime(), // use timestamp number for recharts
+        }));
+
+        setHistory(formatted);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching chart history:', error);
+        setLoading(false);
+      }
+    };
+
     fetchHistory();
   }, [coinId]);
 
   return (
-    <div className="w-full h-80 mt-6 bg-white/10 rounded-xl p-4 backdrop-blur-lg">
+    <div className="w-full h-64 mt-8">
+      <h2 className="text-xl font-semibold mb-2 uppercase">{coinId} Price History</h2>
+
       {loading ? (
-        <p className="text-white">Loading chart...</p>
+        <p className="text-center text-gray-500">Loading chart...</p>
+      ) : history.length === 0 ? (
+        <p className="text-center text-red-500">No history data available.</p>
       ) : (
-        <>
-          <h2 className="text-white text-xl font-semibold mb-4">
-            {coinName} Price History
-          </h2>
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={history}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#ccc" />
-              <XAxis dataKey="timestamp" tickFormatter={(ts) => new Date(ts).toLocaleDateString()} />
-              <YAxis domain={['auto', 'auto']} />
-              <Tooltip labelFormatter={(ts) => new Date(ts).toLocaleString()} />
-              <Line type="monotone" dataKey="price" stroke="#00bcd4" strokeWidth={2} />
-            </LineChart>
-          </ResponsiveContainer>
-        </>
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={history}>
+            <XAxis
+              dataKey="date"
+              tickFormatter={(value) =>
+                new Date(value).toLocaleDateString('en-GB', {
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric',
+                })
+              }
+              angle={-25}
+              textAnchor="end"
+              height={70}
+            />
+            <YAxis dataKey="price" domain={['auto', 'auto']} />
+            <CartesianGrid strokeDasharray="3 3" />
+            <Tooltip
+              labelFormatter={(value) =>
+                new Date(value).toLocaleString('en-GB', {
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })
+              }
+              formatter={(value) => [`$${value.toFixed(2)}`, 'Price']}
+            />
+            <Line type="monotone" dataKey="price" stroke="#8884d8" strokeWidth={2} dot={false} />
+          </LineChart>
+        </ResponsiveContainer>
       )}
     </div>
   );

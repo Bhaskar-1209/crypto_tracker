@@ -1,4 +1,4 @@
-// HistoryData.js
+// models/HistoryData.js
 const mongoose = require('mongoose');
 
 const historyDataSchema = new mongoose.Schema({
@@ -8,7 +8,7 @@ const historyDataSchema = new mongoose.Schema({
   price: Number,
   marketCap: Number,
   change24h: Number,
-  lastUpdated: Date
+  lastUpdated: Date,
 });
 
 module.exports = mongoose.model('HistoryData', historyDataSchema);
